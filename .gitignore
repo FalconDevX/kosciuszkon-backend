@@ -21,3 +21,6 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# Docker
+docker-compose.override.yml
