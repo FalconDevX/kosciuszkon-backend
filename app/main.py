@@ -5,7 +5,6 @@ from app.routes.users import router as users_router
 from app.database import engine
 from app.models import Base
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
