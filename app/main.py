@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 from app.routes.ai import router as ai_router
 from app.routes.quiz import router as quiz_router
+from app.routes.upload import router as upload_router
 from app.routes.users import router as users_router
 from app.database import engine
 from app.models import Base
@@ -28,6 +29,7 @@ app = FastAPI(
 app.include_router(users_router)
 app.include_router(quiz_router)
 app.include_router(ai_router)
+app.include_router(upload_router)
 
 
 @app.get("/")

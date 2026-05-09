@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     OLLAMA_NUM_PREDICT: int = 220
     OLLAMA_TEMPERATURE: float = 0.0
 
+    UPLOAD_DIR: str = "uploads"
+    MAX_UPLOAD_BYTES: int = 10 * 1024 * 1024
+
     model_config = SettingsConfigDict(
         env_file=".env"
     )
