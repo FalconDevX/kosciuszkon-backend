@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from fastapi import HTTPException, Request, UploadFile
-
+from fastapi import HTTPException, Request
+from starlette.datastructures import UploadFile
 
 async def parse_ai_chat_request(request: Request) -> tuple[
     str,
