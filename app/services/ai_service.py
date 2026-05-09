@@ -17,6 +17,31 @@ def _extract_ollama_text(payload: dict) -> str:
 
 
 async def chat_with_model(data: AIChatRequest) -> AIChatResponse:
+    rag_base = (settings.RAG_SERVICE_URL or "").strip().rstrip("/")
+    if rag_base:
+        try:
+            async with httpx.AsyncClient(timeout=settings.RAG_TIMEOUT_SECS) as client:
+                response = await client.post(
+                    f"{rag_base}/chat",
+                    json={"message": data.message},
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise HTTPException(
+                status_code=502,
+                detail=f"RAG service unavailable: {exc}",
+            ) from exc
+
+        parsed = response.json()
+        text = (parsed.get("response") or "").strip()
+        model_name = (parsed.get("model") or "rag").strip()
+        if not text:
+            raise HTTPException(
+                status_code=502,
+                detail="RAG returned empty response",
+            )
+        return AIChatResponse(response=text, model=model_name)
+
     ollama_url = settings.OLLAMA_URL.rstrip("/")
 
     body = {
