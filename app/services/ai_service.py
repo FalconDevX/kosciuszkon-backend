@@ -4,7 +4,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import settings
-from app.schemas.ai import AIChatResponse
+from app.schemas.ai import AIChatResponse, AISource
 
 
 def _extract_ollama_text(payload: dict) -> str:
@@ -18,12 +18,30 @@ def _extract_ollama_text(payload: dict) -> str:
     )
 
 
+def _normalize_sources(raw: object) -> list[AISource]:
+    if not isinstance(raw, list):
+        return []
+    out: list[AISource] = []
+    seen: set[str] = set()
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        url = str(item.get("url") or item.get("href") or "").strip()
+        title = str(item.get("title") or "").strip() or url
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        out.append(AISource(title=title, url=url))
+    return out
+
+
 async def chat_with_model(
     message: str,
     history: list[dict[str, str]],
     uploaded_file: tuple[bytes, str] | None,
     file_base64: str | None,
     file_name: str | None,
+    web_search: bool = False,
 ) -> AIChatResponse:
     rag_base = (settings.RAG_SERVICE_URL or "").strip().rstrip("/")
     if rag_base:
@@ -36,11 +54,16 @@ async def chat_with_model(
                         data={
                             "message": message,
                             "history": json.dumps(history),
+                            "web_search": "true" if web_search else "false",
                         },
                         files={"file": (fname, raw)},
                     )
                 else:
-                    payload: dict = {"message": message, "history": history}
+                    payload: dict = {
+                        "message": message,
+                        "history": history,
+                        "web_search": bool(web_search),
+                    }
                     if file_base64:
                         payload["file_base64"] = file_base64
                     if file_name:
@@ -64,7 +87,8 @@ async def chat_with_model(
                 status_code=502,
                 detail="RAG returned empty response",
             )
-        return AIChatResponse(response=text, model=model_name)
+        sources = _normalize_sources(parsed.get("sources"))
+        return AIChatResponse(response=text, model=model_name, sources=sources)
 
     ollama_url = settings.OLLAMA_URL.rstrip("/")
 

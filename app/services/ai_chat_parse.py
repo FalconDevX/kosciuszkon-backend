@@ -7,15 +7,30 @@ import json
 from fastapi import HTTPException, Request
 from starlette.datastructures import UploadFile
 
+def _coerce_bool(val: object, default: bool = False) -> bool:
+    if val is None:
+        return default
+    if isinstance(val, bool):
+        return val
+    s = str(val).strip().lower()
+    if s in {"1", "true", "yes", "on"}:
+        return True
+    if s in {"0", "false", "no", "off", ""}:
+        return False
+    return default
+
+
 async def parse_ai_chat_request(request: Request) -> tuple[
     str,
     list[dict[str, str]],
     tuple[bytes, str] | None,
     str | None,
     str | None,
+    bool,
 ]:
     """
-    Returns: message, history, upload_bytes_pair_or_none, file_base64_or_none, file_name_or_none.
+    Returns: message, history, upload_bytes_pair_or_none, file_base64_or_none,
+             file_name_or_none, web_search_flag.
     """
     ct = (request.headers.get("content-type") or "").lower()
 
@@ -43,7 +58,9 @@ async def parse_ai_chat_request(request: Request) -> tuple[
             if raw_bytes:
                 fname = up.filename or "upload.bin"
                 uploaded = (raw_bytes, fname)
-        return message, history, uploaded, None, None
+
+        web_search = _coerce_bool(form.get("web_search"), default=False)
+        return message, history, uploaded, None, None, web_search
 
     try:
         body = await request.json()
@@ -61,7 +78,7 @@ async def parse_ai_chat_request(request: Request) -> tuple[
     history = _normalize_history(parsed.history)
     fb64 = parsed.file_base64.strip() if parsed.file_base64 else None
     fname = (parsed.file_name or "").strip() or None
-    return message, history, None, fb64, fname
+    return message, history, None, fb64, fname, bool(parsed.web_search)
 
 
 def _normalize_history(raw: object) -> list[dict[str, str]]:

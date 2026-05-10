@@ -15,8 +15,18 @@ class AIChatRequest(BaseModel):
         default=None,
         description="Original filename when using file_base64",
     )
+    web_search: bool = Field(
+        default=False,
+        description="If true, instruct RAG to run a DuckDuckGo web search on the message and feed snippets to the model.",
+    )
+
+
+class AISource(BaseModel):
+    title: str
+    url: str
 
 
 class AIChatResponse(BaseModel):
     response: str
     model: str
+    sources: list[AISource] = Field(default_factory=list)

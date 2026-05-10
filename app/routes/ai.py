@@ -35,6 +35,14 @@ _AI_CHAT_JSON_SCHEMA = AIChatRequest.model_json_schema()
                                 "history": [],
                             },
                         },
+                        "Z wyszukiwaniem w sieci": {
+                            "summary": "Wymuszone web_search (DuckDuckGo)",
+                            "value": {
+                                "message": "co nowego w cyberbezpieczeństwie w tym tygodniu?",
+                                "history": [],
+                                "web_search": True,
+                            },
+                        },
                         "Z historią": {
                             "summary": "Kontynuacja rozmowy",
                             "value": {
@@ -77,6 +85,11 @@ _AI_CHAT_JSON_SCHEMA = AIChatRequest.model_json_schema()
                                 "format": "binary",
                                 "description": "Optional attachment — forwarded to RAG → VirusTotal",
                             },
+                            "web_search": {
+                                "type": "string",
+                                "enum": ["true", "false"],
+                                "description": "If 'true', RAG runs DuckDuckGo web_search on the message",
+                            },
                         },
                     },
                 },
@@ -85,5 +98,5 @@ _AI_CHAT_JSON_SCHEMA = AIChatRequest.model_json_schema()
     },
 )
 async def ai_chat(request: Request):
-    message, history, upload, fb64, fname = await parse_ai_chat_request(request)
-    return await chat_with_model(message, history, upload, fb64, fname)
+    message, history, upload, fb64, fname, web_search = await parse_ai_chat_request(request)
+    return await chat_with_model(message, history, upload, fb64, fname, web_search=web_search)
