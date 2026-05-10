@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
+#redep
 class Settings(BaseSettings):
 
     DATABASE_URL: str
