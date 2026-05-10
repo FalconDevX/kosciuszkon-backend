@@ -19,6 +19,10 @@ class AIChatRequest(BaseModel):
         default=False,
         description="If true, instruct RAG to run a DuckDuckGo web search on the message and feed snippets to the model.",
     )
+    locale: str | None = Field(
+        default=None,
+        description="UI locale (pl or en) so the assistant can link to wiki/quiz routes for the active language.",
+    )
 
 
 class AISource(BaseModel):

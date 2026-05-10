@@ -27,10 +27,11 @@ async def parse_ai_chat_request(request: Request) -> tuple[
     str | None,
     str | None,
     bool,
+    str | None,
 ]:
     """
     Returns: message, history, upload_bytes_pair_or_none, file_base64_or_none,
-             file_name_or_none, web_search_flag.
+             file_name_or_none, web_search_flag, locale_or_none.
     """
     ct = (request.headers.get("content-type") or "").lower()
 
@@ -60,7 +61,9 @@ async def parse_ai_chat_request(request: Request) -> tuple[
                 uploaded = (raw_bytes, fname)
 
         web_search = _coerce_bool(form.get("web_search"), default=False)
-        return message, history, uploaded, None, None, web_search
+        loc_raw = form.get("locale")
+        locale = str(loc_raw).strip() if loc_raw else None
+        return message, history, uploaded, None, None, web_search, locale
 
     try:
         body = await request.json()
@@ -78,7 +81,8 @@ async def parse_ai_chat_request(request: Request) -> tuple[
     history = _normalize_history(parsed.history)
     fb64 = parsed.file_base64.strip() if parsed.file_base64 else None
     fname = (parsed.file_name or "").strip() or None
-    return message, history, None, fb64, fname, bool(parsed.web_search)
+    loc = (parsed.locale or "").strip() if parsed.locale else None
+    return message, history, None, fb64, fname, bool(parsed.web_search), loc
 
 
 def _normalize_history(raw: object) -> list[dict[str, str]]:

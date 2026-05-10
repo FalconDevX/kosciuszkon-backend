@@ -90,6 +90,10 @@ _AI_CHAT_JSON_SCHEMA = AIChatRequest.model_json_schema()
                                 "enum": ["true", "false"],
                                 "description": "If 'true', RAG runs DuckDuckGo web_search on the message",
                             },
+                            "locale": {
+                                "type": "string",
+                                "description": "UI locale (pl or en) for in-app wiki/quiz links in the reply",
+                            },
                         },
                     },
                 },
@@ -98,5 +102,7 @@ _AI_CHAT_JSON_SCHEMA = AIChatRequest.model_json_schema()
     },
 )
 async def ai_chat(request: Request):
-    message, history, upload, fb64, fname, web_search = await parse_ai_chat_request(request)
-    return await chat_with_model(message, history, upload, fb64, fname, web_search=web_search)
+    message, history, upload, fb64, fname, web_search, locale = await parse_ai_chat_request(request)
+    return await chat_with_model(
+        message, history, upload, fb64, fname, web_search=web_search, locale=locale
+    )

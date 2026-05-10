@@ -42,6 +42,7 @@ async def chat_with_model(
     file_base64: str | None,
     file_name: str | None,
     web_search: bool = False,
+    locale: str | None = None,
 ) -> AIChatResponse:
     rag_base = (settings.RAG_SERVICE_URL or "").strip().rstrip("/")
     if rag_base:
@@ -49,13 +50,16 @@ async def chat_with_model(
             async with httpx.AsyncClient(timeout=settings.RAG_TIMEOUT_SECS) as client:
                 if uploaded_file is not None:
                     raw, fname = uploaded_file
+                    form_fields = {
+                        "message": message,
+                        "history": json.dumps(history),
+                        "web_search": "true" if web_search else "false",
+                    }
+                    if locale:
+                        form_fields["locale"] = locale
                     response = await client.post(
                         f"{rag_base}/chat",
-                        data={
-                            "message": message,
-                            "history": json.dumps(history),
-                            "web_search": "true" if web_search else "false",
-                        },
+                        data=form_fields,
                         files={"file": (fname, raw)},
                     )
                 else:
@@ -64,6 +68,8 @@ async def chat_with_model(
                         "history": history,
                         "web_search": bool(web_search),
                     }
+                    if locale:
+                        payload["locale"] = locale
                     if file_base64:
                         payload["file_base64"] = file_base64
                     if file_name:

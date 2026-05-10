@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     SUPABASE_URL: str
     SUPABASE_KEY: str
-    # If set (e.g. http://rag-api:8080 or http://host.docker.internal:8080), /ai/chat proxies to RAG service.
+                                                                                                             
     RAG_SERVICE_URL: str = ""
     RAG_TIMEOUT_SECS: float = 320.0
     OLLAMA_URL: str = "http://127.0.0.1:11434"
