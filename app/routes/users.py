@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,6 +37,24 @@ async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     return logged_user
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Logout",
+    description=(
+        "Stateless logout. The backend currently does not issue server-side sessions/JWTs, "
+        "so this endpoint exists for symmetry with /login: clients should clear any locally "
+        "stored user identifier after calling it. If session cookies are added later, this is "
+        "where they should be cleared via Set-Cookie expiry."
+    ),
+)
+async def logout() -> Response:
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    for cookie_name in ("safeclick_session", "session", "access_token"):
+        response.delete_cookie(cookie_name, path="/")
+    return response
 
 
 @router.get("/{user_id}", response_model=UserRead)
